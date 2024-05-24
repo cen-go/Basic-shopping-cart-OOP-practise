@@ -15,9 +15,14 @@ class ElementAttribute {
 }
 
 class Component {
-  constructor(renderHookId) {
+  constructor(renderHookId, shouldRender = true) {
     this.hookId = renderHookId;
+    if (shouldRender) {
+      this.render();
+    }
   }
+
+  render() {}
 
   createRootElement(tag, cssClass, attributes) {
     const rootElement = document.createElement(tag);
@@ -35,10 +40,9 @@ class Component {
 }
 
 class ShoppingCart extends Component {
-  items = [];
-  totalOutput;
+  items = [];  
   constructor(renderHookId) {
-    super(renderHookId);
+    super(renderHookId);    
   }
 
   get totalPrice() {
@@ -47,7 +51,12 @@ class ShoppingCart extends Component {
 
   addProduct(product) {
     this.items.push(product);
-    this.totalOutput.textContent = `Total: \$ ${this.totalPrice.toFixed(2)}`;
+    this.totalOutput.textContent = `Total: \$ ${this.totalPrice.toFixed(2)}`;    
+  }
+
+  orderProducts() {
+    console.log("ordering....");
+    console.log(this.items);
   }
 
   render() {
@@ -58,14 +67,17 @@ class ShoppingCart extends Component {
         <button type="button">Order Now</button>
       </section>
     `;
-    this.totalOutput = cartEl.querySelector("h2");    
+    this.totalOutput = cartEl.querySelector("h2");
+    this.orderButton = cartEl.querySelector("button");
+    this.orderButton.addEventListener("click", this.orderProducts.bind(this));     
   }
 }
 
 class ProductItem extends Component{
   constructor(renderHookId, product) {
-    super(renderHookId);
+    super(renderHookId, false);
     this.product = product;
+    this.render();
   }
   addToCart() {
     App.addProductToCart(this.product);
@@ -91,29 +103,41 @@ class ProductItem extends Component{
 }
 
 class ProductList extends Component {
-  products = [
-    new Product("A Pillow", "assets/images/pillow-1.webp", 19.99, "A soft pillow."),
-    new Product("A carpet", "assets/images/carpet-1.webp", 89.99, "High quality Iran carpet.")    
-  ];
+  products = [];
   constructor(renderHookId) {
     super(renderHookId);
+    this.fetchProducts();
   }
-  render() {
-    this.createRootElement("ul", "product-list", [new ElementAttribute("id", "prod-list")]);   
+
+  fetchProducts() {
+    this.products = [
+      new Product("A Pillow", "assets/images/pillow-1.webp", 19.99, "A soft pillow."),
+      new Product("A carpet", "assets/images/carpet-1.webp", 89.99, "High quality Iran carpet.")
+    ];
+    this.renderProducts();
+  }
+
+  renderProducts() {
     for (const prod of this.products) {
-      const productItem = new ProductItem("prod-list",prod);
-      productItem.render();      
-    }       
+      new ProductItem("prod-list",prod);      
+    }
   }
+
+  render() {
+    this.createRootElement("ul", "product-list", [new ElementAttribute("id", "prod-list")]);
+    if (this.products && this.products.length > 0) {
+      this.renderProducts();
+    }   
+  } 
 }
 
 class Shop {
-
+  constructor() {
+    this.render();
+  }
   render() {   
-    this.cart = new ShoppingCart("app");
-    this.cart.render();
-    const productList = new ProductList("app");
-    productList.render();    
+    this.cart = new ShoppingCart("app");    
+    const productList = new ProductList("app");       
   }
 }
 
@@ -121,8 +145,7 @@ class App {
   static cart;
 
   static init() {
-    const shop = new Shop();
-    shop.render();
+    const shop = new Shop();    
     this.cart = shop.cart;
   }
 
