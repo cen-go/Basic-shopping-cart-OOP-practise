@@ -7,6 +7,32 @@ class Product {
   }
 }
 
+class ElementAttribute {
+  constructor(attrName, attrValue) {
+    this.name = attrName;
+    this.value = attrValue;
+  }
+}
+
+class Component {
+  constructor(renderHookId) {
+    this.hookId = renderHookId;
+  }
+
+  createRootElement(tag, cssClass, attributes) {
+    const rootElement = document.createElement(tag);
+    if (cssClass) {
+      rootElement.classList.add(cssClass)
+    }
+    if (attributes && attributes.length > 0) {
+      for (const attr of attributes) {
+        rootElement.setAttribute(attr.name, attr.value);
+      }
+    }
+    document.getElementById(this.hookId).append(rootElement);
+  }
+}
+
 class ShoppingCart {
   items = [];
   totalOutput;
